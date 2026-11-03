@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-900 text-slate-100 select-none">
+<html lang="fr" class="h-full bg-slate-950 text-slate-100 select-none">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -9,13 +9,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Rythmo">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#020617">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <!-- Canvas Confetti pour la célébration du 'Fait !' -->
+  <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <!-- Web App Manifest dynamique -->
@@ -25,27 +25,24 @@
       short_name: "Rythmo",
       start_url: "./",
       display: "standalone",
-      background_color: "#0f172a",
-      theme_color: "#0f172a",
+      background_color: "#020617",
+      theme_color: "#020617",
       icons: [
         {
-          src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%236366f1'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50'>🔄</text></svg>",
+          src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236366f1'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-size='50'>🔄</text></svg>",
           sizes: "192x192 512x512",
           type: "image/svg+xml"
         }
       ]
     };
-    const stringManifest = JSON.stringify(manifest);
-    const blob = new Blob([stringManifest], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    document.head.appendChild(link);
+    const blobManifest = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const linkManifest = document.createElement('link');
+    linkManifest.rel = 'manifest';
+    linkManifest.href = URL.createObjectURL(blobManifest);
+    document.head.appendChild(linkManifest);
   </script>
 
   <style>
-    /* Safe areas iOS pour encoche et barre home */
     body {
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
@@ -53,59 +50,66 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     .touch-press {
-      transition: transform 0.12s ease-out, filter 0.12s ease-out;
+      transition: transform 0.1s ease-out, filter 0.1s ease-out;
     }
     .touch-press:active {
       transform: scale(0.96);
       filter: brightness(0.9);
     }
-    /* Scrollbar invisible */
     ::-webkit-scrollbar {
       display: none;
     }
   </style>
 </head>
-<body class="min-h-full flex flex-col justify-between max-w-lg mx-auto bg-slate-950 font-sans pb-10">
+<body class="min-h-full flex flex-col justify-between max-w-lg mx-auto bg-slate-950 font-sans pb-12">
 
   <!-- En-tête -->
-  <header class="pt-4 pb-3 px-5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-30 border-b border-slate-800/60">
+  <header class="pt-4 pb-3 px-5 sticky top-0 bg-slate-950/85 backdrop-blur-md z-30 border-b border-slate-850 border-slate-800/60">
     <div class="flex items-center justify-between">
       <div>
         <div class="flex items-center space-x-2">
-          <span class="text-xl">🔄</span>
-          <h1 class="text-2xl font-bold tracking-tight text-white">Rythmo</h1>
+          <span class="text-2xl animate-spin-slow">🔄</span>
+          <h1 class="text-2xl font-black tracking-tight text-white">Rythmo</h1>
         </div>
-        <p id="current-date" class="text-xs font-medium text-slate-400 capitalize mt-0.5"></p>
+        <p id="current-date" class="text-xs font-semibold text-slate-400 capitalize mt-0.5"></p>
       </div>
-      <button onclick="openModal()" class="w-11 h-11 rounded-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-all">
-        <i class="ph-bold ph-plus text-xl"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="openModal()" aria-label="Ajouter une tâche" class="w-11 h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-all">
+          <i class="ph-bold ph-plus text-xl"></i>
+        </button>
+      </div>
     </div>
 
-    <!-- Synthèse statut -->
-    <div class="flex items-center space-x-2 mt-4 text-xs font-semibold">
-      <div id="stat-urgent" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20">
-        <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-        <span>0 urgentes</span>
+    <!-- Synthèse statut & Indicateur Badge -->
+    <div class="flex items-center justify-between mt-3 text-xs font-semibold">
+      <div class="flex items-center space-x-1.5 overflow-x-auto py-1">
+        <div id="stat-urgent" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20 whitespace-nowrap">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+          <span>0 urgent</span>
+        </div>
+        <div id="stat-soon" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20 whitespace-nowrap">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span>0 bientôt</span>
+        </div>
+        <div id="stat-ok" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>0 à jour</span>
+        </div>
       </div>
-      <div id="stat-soon" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
-        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-        <span>0 bientôt</span>
-      </div>
-      <div id="stat-ok" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span>0 à jour</span>
+      <div id="badge-pill" class="text-[10px] text-slate-400 flex items-center gap-1 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-md">
+        <i class="ph-bold ph-bell-simple text-indigo-400"></i>
+        <span id="badge-count">Badge 0</span>
       </div>
     </div>
   </header>
 
   <!-- Liste des tâches -->
   <main class="flex-1 px-4 py-4 space-y-3.5" id="task-list">
-    <!-- Rendu dynamique JS -->
+    <!-- Cartes injectées en JS -->
   </main>
 
-  <!-- Modal Ajout / Modification -->
-  <div id="task-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <!-- Modale : Création & Édition -->
+  <div id="task-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl transition-all">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
         <h2 id="modal-title" class="text-lg font-bold text-white">Nouvelle Tâche</h2>
@@ -121,11 +125,11 @@
         <div class="flex gap-3">
           <div class="w-16">
             <label class="block text-xs font-semibold text-slate-400 mb-1">Icône</label>
-            <input type="text" id="task-emoji" required maxlength="2" class="w-full text-center text-2xl bg-slate-800 border border-slate-700 rounded-xl py-2 focus:ring-2 focus:ring-indigo-500 outline-none" value="✨">
+            <input type="text" id="task-emoji" required maxlength="3" class="w-full text-center text-2xl bg-slate-800 border border-slate-700 rounded-xl py-2 focus:ring-2 focus:ring-indigo-500 outline-none" value="✨">
           </div>
           <div class="flex-1">
             <label class="block text-xs font-semibold text-slate-400 mb-1">Nom de la tâche</label>
-            <input type="text" id="task-title" required placeholder="Ex: Faire les vitres" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input type="text" id="task-title" required placeholder="Ex: Nettoyer le four" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
         </div>
 
@@ -138,18 +142,18 @@
             <button type="button" onclick="setPresetDays(30)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-300">1 mois</button>
             <button type="button" onclick="setPresetDays(90)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-300">3 mois</button>
           </div>
-          <input type="number" id="task-days" required min="1" max="999" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ex: 14">
+          <input type="number" id="task-days" required min="1" max="999" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="14">
         </div>
 
         <!-- Date de dernière réalisation -->
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Fait la dernière fois le</label>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Dernière exécution</label>
           <input type="date" id="task-last-done" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
 
         <!-- Boutons d'action -->
         <div class="pt-3 flex gap-2">
-          <button type="button" id="btn-delete" onclick="deleteCurrentTask()" class="hidden px-4 py-3 bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-xl font-medium transition-all">
+          <button type="button" id="btn-delete" onclick="deleteCurrentTask()" class="hidden px-4 py-3 bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/80 rounded-xl font-medium transition-all">
             <i class="ph-bold ph-trash text-lg"></i>
           </button>
           <button type="submit" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold tracking-wide shadow-lg shadow-indigo-600/30 transition-all touch-press">
@@ -160,43 +164,135 @@
     </div>
   </div>
 
+  <!-- Modale : Historique & Détails de fréquence -->
+  <div id="history-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span id="history-emoji" class="text-2xl"></span>
+          <h2 id="history-title" class="text-base font-bold text-white truncate max-w-[220px]"></h2>
+        </div>
+        <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+          <i class="ph-bold ph-x text-base"></i>
+        </button>
+      </div>
+
+      <!-- Statistique Réelle vs Théorique -->
+      <div class="grid grid-cols-2 gap-2.5 bg-slate-950/60 p-3 rounded-2xl border border-slate-800/60 text-center">
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-semibold">Cycle prévu</span>
+          <p id="history-expected-cycle" class="text-lg font-black text-indigo-400 mt-0.5">--</p>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-semibold">Fréquence réelle</span>
+          <p id="history-actual-cycle" class="text-lg font-black text-emerald-400 mt-0.5">--</p>
+        </div>
+      </div>
+
+      <!-- Liste des dates passées -->
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Historique des 10 dernières fois</h4>
+        <div id="history-dates-list" class="max-h-52 overflow-y-auto space-y-1.5 pr-1 text-xs">
+          <!-- Dates rendues en JS -->
+        </div>
+      </div>
+
+      <!-- Actions rapides au pied de la modale -->
+      <div class="pt-2 flex gap-2">
+        <button id="btn-edit-from-history" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition-all">
+          Modifier la configuration de cette tâche
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
-  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800/90 backdrop-blur-md text-white border border-slate-700/80 px-4 py-2.5 rounded-full text-xs font-medium shadow-xl pointer-events-none transition-all duration-300 opacity-0 transform translate-y-3 flex items-center gap-2 z-50">
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-850 bg-slate-900/90 backdrop-blur-md text-white border border-slate-700/80 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl pointer-events-none transition-all duration-300 opacity-0 transform translate-y-3 flex items-center gap-2 z-50">
     <i class="ph-fill ph-check-circle text-emerald-400 text-base"></i>
-    <span id="toast-message">Action enregistrée !</span>
+    <span id="toast-message">Fait !</span>
   </div>
 
   <script>
-    // Tâches par défaut pré-configurées avec des dates de départ réalistes
-    const DEFAULT_TASKS = [
-      { id: "1", emoji: "🛏️", title: "Changer les draps", frequencyDays: 14, lastDone: getRelativeDateStr(-15) },
-      { id: "2", emoji: "🧺", title: "Cycle nettoyage machine", frequencyDays: 30, lastDone: getRelativeDateStr(-27) },
-      { id: "3", emoji: "🍽️", title: "Cycle nettoyage lave-vaisselle", frequencyDays: 30, lastDone: getRelativeDateStr(-8) },
-      { id: "4", emoji: "🧀", title: "Filtre boîte à fromage", frequencyDays: 90, lastDone: getRelativeDateStr(-25) },
-      { id: "5", emoji: "🪟", title: "Faire les vitres", frequencyDays: 60, lastDone: getRelativeDateStr(-10) }
-    ];
+    // Enregistrement d'un Service Worker minimal via Data Blob pour activer la PWA et le Badging iOS
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        self.addEventListener('install', (e) => self.skipWaiting());
+        self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+        self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => {
+        console.warn("Service worker optionnel non activé:", err);
+      });
+    }
 
-    let tasks = [];
-
-    // Initialisation
-    window.onload = function() {
-      // Date du jour en français
-      const now = new Date();
-      const options = { weekday: 'long', day: 'numeric', month: 'long' };
-      document.getElementById('current-date').textContent = now.toLocaleDateString('fr-FR', options);
-
-      loadTasks();
-      renderTasks();
-    };
-
+    // Calcul de date ISO relative
     function getRelativeDateStr(daysDiff) {
       const d = new Date();
       d.setDate(d.getDate() + daysDiff);
       return d.toISOString().split('T')[0];
     }
 
+    // Données par défaut avec historique simulé réaliste
+    const DEFAULT_TASKS = [
+      {
+        id: "1",
+        emoji: "🛏️",
+        title: "Changer les draps",
+        frequencyDays: 14,
+        lastDone: getRelativeDateStr(-16),
+        history: [getRelativeDateStr(-16), getRelativeDateStr(-32), getRelativeDateStr(-47)]
+      },
+      {
+        id: "2",
+        emoji: "🧺",
+        title: "Cycle nettoyage machine à laver",
+        frequencyDays: 30,
+        lastDone: getRelativeDateStr(-28),
+        history: [getRelativeDateStr(-28), getRelativeDateStr(-59), getRelativeDateStr(-90)]
+      },
+      {
+        id: "3",
+        emoji: "🍽️",
+        title: "Cycle nettoyage lave-vaisselle",
+        frequencyDays: 30,
+        lastDone: getRelativeDateStr(-10),
+        history: [getRelativeDateStr(-10), getRelativeDateStr(-42), getRelativeDateStr(-71)]
+      },
+      {
+        id: "4",
+        emoji: "🧀",
+        title: "Filtre boîte à fromage",
+        frequencyDays: 90,
+        lastDone: getRelativeDateStr(-40),
+        history: [getRelativeDateStr(-40), getRelativeDateStr(-130)]
+      },
+      {
+        id: "5",
+        emoji: "🪟",
+        title: "Faire les vitres",
+        frequencyDays: 60,
+        lastDone: getRelativeDateStr(-12),
+        history: [getRelativeDateStr(-12), getRelativeDateStr(-74)]
+      }
+    ];
+
+    let tasks = [];
+
+    window.onload = function() {
+      const now = new Date();
+      document.getElementById('current-date').textContent = now.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+      });
+
+      loadTasks();
+      renderTasks();
+    };
+
     function loadTasks() {
-      const stored = localStorage.getItem('rythmo_tasks');
+      const stored = localStorage.getItem('rythmo_tasks_v2');
       if (stored) {
         try {
           tasks = JSON.parse(stored);
@@ -204,16 +300,65 @@
           tasks = DEFAULT_TASKS;
         }
       } else {
-        tasks = DEFAULT_TASKS;
+        // Migration rétrocompatible si l'ancienne version v1 existe
+        const oldV1 = localStorage.getItem('rythmo_tasks');
+        if (oldV1) {
+          try {
+            const parsed = JSON.parse(oldV1);
+            tasks = parsed.map(t => ({
+              ...t,
+              history: t.history || [t.lastDone]
+            }));
+          } catch(e) {
+            tasks = DEFAULT_TASKS;
+          }
+        } else {
+          tasks = DEFAULT_TASKS;
+        }
         saveToStorage();
       }
     }
 
     function saveToStorage() {
-      localStorage.setItem('rythmo_tasks', JSON.stringify(tasks));
+      localStorage.setItem('rythmo_tasks_v2', JSON.stringify(tasks));
+      updateAppBadge();
     }
 
-    // Calcul de l'état d'urgence d'une tâche
+    // Gestion du Badging iOS natif
+    async function updateAppBadge() {
+      let overdueCount = 0;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      tasks.forEach(task => {
+        const last = new Date(task.lastDone);
+        last.setHours(0,0,0,0);
+        const elapsed = Math.max(0, Math.floor((today - last) / (1000 * 60 * 60 * 24)));
+        if (elapsed >= task.frequencyDays) {
+          overdueCount++;
+        }
+      });
+
+      const badgeIndicator = document.getElementById('badge-count');
+      if (badgeIndicator) {
+        badgeIndicator.textContent = overdueCount > 0 ? `Badge ${overdueCount} ⚠️` : `Badge à jour`;
+      }
+
+      // Appel de l'API de badge standardisée iOS / PWA
+      if ('setAppBadge' in navigator) {
+        try {
+          if (overdueCount > 0) {
+            await navigator.setAppBadge(overdueCount);
+          } else {
+            await navigator.clearAppBadge();
+          }
+        } catch (e) {
+          console.log("App Badge non pris en charge sur ce contexte", e);
+        }
+      }
+    }
+
+    // Métriques d'une tâche
     function computeTaskHealth(task) {
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -225,27 +370,27 @@
       const remainingDays = task.frequencyDays - elapsedDays;
       const progressPercent = Math.min(100, Math.round((elapsedDays / task.frequencyDays) * 100));
 
-      let status = "ok"; // ok | soon | urgent
+      let status = "ok";
       let badgeText = "";
-      let colorClass = "from-emerald-500 to-teal-400";
+      let colorClass = "from-emerald-400 to-teal-500";
       let bgCardBorder = "border-slate-800/80";
 
       if (remainingDays < 0) {
         status = "urgent";
         const overdue = Math.abs(remainingDays);
         badgeText = `En retard de ${overdue}j`;
-        colorClass = "from-rose-500 to-red-600";
-        bgCardBorder = "border-rose-500/40";
+        colorClass = "from-fuchsia-600 via-rose-600 to-red-600";
+        bgCardBorder = "border-rose-500/50 shadow-rose-950/20";
       } else if (remainingDays === 0) {
         status = "urgent";
         badgeText = "À faire aujourd'hui";
         colorClass = "from-rose-500 to-red-600";
-        bgCardBorder = "border-rose-500/30";
-      } else if (remainingDays <= Math.ceil(task.frequencyDays * 0.2) || remainingDays <= 3) {
+        bgCardBorder = "border-rose-500/40";
+      } else if (remainingDays <= Math.ceil(task.frequencyDays * 0.25) || remainingDays <= 3) {
         status = "soon";
         badgeText = `Reste ${remainingDays}j`;
         colorClass = "from-amber-400 to-orange-500";
-        bgCardBorder = "border-amber-500/30";
+        bgCardBorder = "border-amber-500/40";
       } else {
         status = "ok";
         badgeText = `Reste ${remainingDays}j`;
@@ -263,56 +408,81 @@
       };
     }
 
-    // Affichage des cartes triées par urgence (retard en haut)
+    // Calcul de la fréquence moyenne observée
+    function computeAverageInterval(history) {
+      if (!history || history.length < 2) return null;
+      
+      // Trier du plus ancien au plus récent
+      const sorted = [...history].sort((a,b) => new Date(a) - new Date(b));
+      let totalDays = 0;
+      let intervals = 0;
+
+      for (let i = 1; i < sorted.length; i++) {
+        const d1 = new Date(sorted[i-1]);
+        const d2 = new Date(sorted[i]);
+        const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+        if (diff > 0) {
+          totalDays += diff;
+          intervals++;
+        }
+      }
+
+      if (intervals === 0) return null;
+      return (totalDays / intervals).toFixed(1);
+    }
+
+    // Rendu dynamique de la liste
     function renderTasks() {
       const listContainer = document.getElementById('task-list');
       listContainer.innerHTML = '';
 
-      // Calcul des métriques pour chaque tâche
-      const enrichedTasks = tasks.map(t => ({
+      const enriched = tasks.map(t => ({
         ...t,
         health: computeTaskHealth(t)
       }));
 
-      // Tri : les plus urgents (remainingDays le plus faible / négatif) en premier
-      enrichedTasks.sort((a, b) => a.health.remainingDays - b.health.remainingDays);
+      // Les plus urgents d'abord
+      enriched.sort((a, b) => a.health.remainingDays - b.health.remainingDays);
 
-      let countUrgent = 0, countSoon = 0, countOk = 0;
+      let urgentCount = 0, soonCount = 0, okCount = 0;
 
-      enrichedTasks.forEach(task => {
-        if (task.health.status === 'urgent') countUrgent++;
-        else if (task.health.status === 'soon') countSoon++;
-        else countOk++;
+      enriched.forEach(task => {
+        if (task.health.status === 'urgent') urgentCount++;
+        else if (task.health.status === 'soon') soonCount++;
+        else okCount++;
 
-        const formattedDate = new Date(task.lastDone).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        const lastDoneDate = new Date(task.lastDone);
+        const formattedDate = lastDoneDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
         const card = document.createElement('div');
-        card.className = `relative overflow-hidden rounded-2xl bg-slate-900/90 border ${task.health.bgCardBorder} p-4 transition-all duration-200 shadow-md flex flex-col justify-between`;
-        card.id = `task-card-${task.id}`;
+        card.className = `relative overflow-hidden rounded-3xl bg-slate-900/90 border ${task.health.bgCardBorder} p-4 transition-all duration-200 shadow-lg flex flex-col justify-between`;
 
         card.innerHTML = `
-          <div class="flex items-start justify-between gap-3 cursor-pointer" onclick="openModal('${task.id}')">
-            <div class="flex items-center gap-3">
-              <span class="text-3xl p-2 rounded-2xl bg-slate-800/80 ring-1 ring-slate-700/50">${task.emoji}</span>
+          <div class="flex items-start justify-between gap-3">
+            <!-- Clic sur le corps ouvre l'historique & analyse -->
+            <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="openHistoryModal('${task.id}')">
+              <span class="text-3xl p-2.5 rounded-2xl bg-slate-800/80 ring-1 ring-slate-700/60">${task.emoji}</span>
               <div>
                 <h3 class="font-bold text-white text-base leading-tight">${task.title}</h3>
-                <p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-                  <span>Dernier fait : <strong>${formattedDate}</strong></span>
+                <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
+                  <span>Dernier : <strong>${formattedDate}</strong></span>
                   <span>•</span>
                   <span>Cycle : ${task.frequencyDays}j</span>
+                  <span>•</span>
+                  <span class="text-indigo-400 underline font-medium">Historique</span>
                 </p>
               </div>
             </div>
 
             <!-- Bouton Fait ! -->
-            <button onclick="markAsDone('${task.id}', event)" class="touch-press px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 active:text-white border border-slate-700/80 flex items-center gap-1.5 shadow-sm text-xs font-bold text-emerald-400 transition-colors">
+            <button onclick="markAsDone('${task.id}', event)" class="touch-press px-3.5 py-2.5 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500 active:bg-emerald-600 active:text-white border border-emerald-500/30 flex items-center gap-1.5 shadow-sm text-xs font-bold text-emerald-400 transition-colors">
               <i class="ph-bold ph-check text-sm"></i>
               <span>Fait !</span>
             </button>
           </div>
 
-          <!-- Ligne de progression et étiquette -->
-          <div class="mt-4">
+          <!-- Barre de progression -->
+          <div class="mt-4 cursor-pointer" onclick="openHistoryModal('${task.id}')">
             <div class="flex justify-between items-center text-xs mb-1.5">
               <span class="font-semibold px-2 py-0.5 rounded-md ${
                 task.health.status === 'urgent' ? 'bg-rose-500/20 text-rose-300' :
@@ -321,11 +491,10 @@
               }">
                 ${task.health.badgeText}
               </span>
-              <span class="text-slate-400 font-mono text-[11px]">${task.health.progressPercent}% du cycle</span>
+              <span class="text-slate-400 font-mono text-[11px]">${task.health.progressPercent}%</span>
             </div>
 
-            <!-- Barre de progression -->
-            <div class="w-full h-2.5 bg-slate-800/90 rounded-full overflow-hidden p-0.5 ring-1 ring-slate-700/40">
+            <div class="w-full h-2.5 bg-slate-800/90 rounded-full overflow-hidden p-0.5 ring-1 ring-slate-700/50">
               <div class="h-full rounded-full bg-gradient-to-r ${task.health.colorClass} transition-all duration-500 ease-out" style="width: ${task.health.progressPercent}%"></div>
             </div>
           </div>
@@ -334,13 +503,15 @@
         listContainer.appendChild(card);
       });
 
-      // Mise à jour des badges récapitulatifs
-      document.getElementById('stat-urgent').innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 ${countUrgent > 0 ? 'animate-pulse' : ''}"></span><span>${countUrgent} urgentes</span>`;
-      document.getElementById('stat-soon').innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>${countSoon} bientôt</span>`;
-      document.getElementById('stat-ok').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>${countOk} à jour</span>`;
+      // Statistiques d'en-tête
+      document.getElementById('stat-urgent').innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 ${urgentCount > 0 ? 'animate-pulse' : ''}"></span><span>${urgentCount} urgent</span>`;
+      document.getElementById('stat-soon').innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>${soonCount} bientôt</span>`;
+      document.getElementById('stat-ok').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>${okCount} à jour</span>`;
+
+      updateAppBadge();
     }
 
-    // Action 1-clic : Fait !
+    // Validation "Fait !"
     function markAsDone(taskId, e) {
       if (e) e.stopPropagation();
 
@@ -349,24 +520,102 @@
 
       const todayStr = new Date().toISOString().split('T')[0];
       task.lastDone = todayStr;
+
+      // Gestion de l'historique (max 10 éléments)
+      if (!task.history) task.history = [];
+      if (!task.history.includes(todayStr)) {
+        task.history.unshift(todayStr);
+      }
+      if (task.history.length > 10) {
+        task.history = task.history.slice(0, 10);
+      }
+
       saveToStorage();
 
-      // Confetti & Vibration haptique (si supportée sur l'appareil)
-      if (navigator.vibrate) {
-        navigator.vibrate([25, 40, 25]);
-      }
+      // Retour haptique & Confetti
+      if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
       confetti({
-        particleCount: 40,
+        particleCount: 45,
         spread: 60,
         origin: { y: 0.8 },
-        colors: ['#10b981', '#34d399', '#6ee7b7']
+        colors: ['#10b981', '#34d399', '#6ee7b7', '#6366f1']
       });
 
-      showToast(`« ${task.title} » validée pour aujourd'hui !`);
+      showToast(`« ${task.title} » validée !`);
       renderTasks();
     }
 
-    // Modale : Ouverture
+    // Affichage de l'historique & de la fréquence réelle
+    function openHistoryModal(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      document.getElementById('history-emoji').textContent = task.emoji;
+      document.getElementById('history-title').textContent = task.title;
+      document.getElementById('history-expected-cycle').textContent = `${task.frequencyDays} jours`;
+
+      const avg = computeAverageInterval(task.history);
+      const actualEl = document.getElementById('history-actual-cycle');
+      if (avg) {
+        actualEl.textContent = `~ ${avg} jours`;
+        // Nuance de couleur si l'on est au-dessus ou en dessous du cycle prévu
+        if (parseFloat(avg) > task.frequencyDays + 2) {
+          actualEl.className = "text-lg font-black text-amber-400 mt-0.5";
+        } else {
+          actualEl.className = "text-lg font-black text-emerald-400 mt-0.5";
+        }
+      } else {
+        actualEl.textContent = "Pas assez de données";
+        actualEl.className = "text-xs font-semibold text-slate-500 mt-1.5";
+      }
+
+      // Rendu de la liste des dates
+      const listEl = document.getElementById('history-dates-list');
+      listEl.innerHTML = '';
+
+      const historyDates = task.history && task.history.length > 0 ? task.history : [task.lastDone];
+      const sortedHistory = [...historyDates].sort((a,b) => new Date(b) - new Date(a));
+
+      sortedHistory.forEach((dateStr, idx) => {
+        const item = document.createElement('div');
+        item.className = "flex justify-between items-center bg-slate-800/60 px-3 py-2 rounded-xl border border-slate-700/50";
+        
+        const dateObj = new Date(dateStr);
+        const label = dateObj.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+        
+        let intervalLabel = "";
+        if (idx < sortedHistory.length - 1) {
+          const nextDate = new Date(sortedHistory[idx + 1]);
+          const diff = Math.round((dateObj - nextDate) / (1000 * 60 * 60 * 24));
+          intervalLabel = `+${diff}j après la précédente`;
+        } else {
+          intervalLabel = "Point de départ";
+        }
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+            <span class="text-white capitalize">${label}</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">${intervalLabel}</span>
+        `;
+        listEl.appendChild(item);
+      });
+
+      // Bouton modifier configuré pour cette tâche
+      document.getElementById('btn-edit-from-history').onclick = function() {
+        closeHistoryModal();
+        openModal(taskId);
+      };
+
+      document.getElementById('history-modal').classList.remove('hidden');
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('history-modal').classList.add('hidden');
+    }
+
+    // Modal Création / Édition
     function openModal(taskId = null) {
       const modal = document.getElementById('task-modal');
       const form = document.getElementById('task-form');
@@ -405,7 +654,6 @@
       document.getElementById('task-days').value = days;
     }
 
-    // Modale : Sauvegarde
     function saveTask(e) {
       e.preventDefault();
       const id = document.getElementById('task-id').value;
@@ -419,8 +667,12 @@
       if (id) {
         const index = tasks.findIndex(t => t.id === id);
         if (index !== -1) {
-          tasks[index] = { id, emoji, title, frequencyDays, lastDone };
-          showToast("Tâche modifiée");
+          const currentHist = tasks[index].history || [];
+          if (!currentHist.includes(lastDone)) {
+            currentHist.unshift(lastDone);
+          }
+          tasks[index] = { ...tasks[index], emoji, title, frequencyDays, lastDone, history: currentHist };
+          showToast("Tâche mise à jour");
         }
       } else {
         const newTask = {
@@ -428,10 +680,11 @@
           emoji,
           title,
           frequencyDays,
-          lastDone
+          lastDone,
+          history: [lastDone]
         };
         tasks.push(newTask);
-        showToast("Nouvelle tâche ajoutée");
+        showToast("Tâche créée !");
       }
 
       saveToStorage();
@@ -439,7 +692,6 @@
       renderTasks();
     }
 
-    // Suppression d'une tâche
     function deleteCurrentTask() {
       const id = document.getElementById('task-id').value;
       if (!id) return;
@@ -451,7 +703,6 @@
       showToast("Tâche supprimée");
     }
 
-    // Message Toast éphémère
     function showToast(text) {
       const toast = document.getElementById('toast');
       const toastMsg = document.getElementById('toast-message');
@@ -462,7 +713,7 @@
       setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', 'translate-y-3');
-      }, 2500);
+      }, 2400);
     }
   </script>
 </body>
